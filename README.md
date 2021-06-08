@@ -14,7 +14,7 @@ You then need to add your server information and your username and password in t
 
 Once added you can pick a server and start exploring your libraries and comics/manga
 
-##Notes
+## Notes
 
 Flutter is cross platform and should work for iPhone, prehaps some changes would be needed to make it work correctly but as I do not have an iPhone or a Mac needed for development I am not able to release a version for this OS, maybe sometime in the future if I ever get my hands on a dev enviroment.
 
