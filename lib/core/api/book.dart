@@ -10,7 +10,7 @@ Future<Book> fetchBook({
   Book book;
   Server server = await getCurrentServer();
 
-  final response = await get(Uri.parse(server.url + 'books/'),
+  final response = await get(Uri.parse(server.url + 'books/' + id),
       headers: auth(
         username: server.username,
         password: server.password,
