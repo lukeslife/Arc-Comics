@@ -65,16 +65,48 @@ class Book {
 class BookMetadata {
   String title;
   String summary;
+  String number;
+  double numberSort;
+  String releaseDate;
+  List authors;
 
   BookMetadata({
     required this.title,
     required this.summary,
+    required this.number,
+    required this.numberSort,
+    required this.releaseDate,
+    required this.authors,
   });
 
   factory BookMetadata.fromJson(Map<String, dynamic> json) {
+    var authorsJson = json['authors'] as List;
+    List<Author> authors =
+        authorsJson.map((authorJson) => Author.fromJson(authorJson)).toList();
     return BookMetadata(
       title: json['title'],
       summary: json['summary'],
+      number: json['number'],
+      numberSort: json['numberSort'],
+      releaseDate: json['releaseDate'],
+      authors: authors,
+    );
+  }
+}
+
+class Author {
+  String name;
+  String role;
+
+  Author({
+    required this.name,
+    required this.role,
+  });
+
+  factory Author.fromJson(Map<String, dynamic> json) {
+    return Author(
+      name: json['name'],
+      role: json['role'],
     );
   }
 }
@@ -102,7 +134,9 @@ class BookReadProgress {
 
   factory BookReadProgress.fromJson(Map<String, dynamic> json) {
     return BookReadProgress(
-        page: json['page'] as int, completed: json['completed'] as bool);
+      page: json['page'] as int,
+      completed: json['completed'] as bool,
+    );
   }
 
   Map<String, dynamic> toJson() {
