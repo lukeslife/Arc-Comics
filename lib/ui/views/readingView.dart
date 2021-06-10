@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:preload_page_view/preload_page_view.dart';
 
-import 'package:simple_gesture_detector/simple_gesture_detector.dart';
 import 'package:arc_comics/core/api/book.dart';
 import 'package:arc_comics/core/api/images.dart';
 import 'package:arc_comics/ui/widgets/slide_up.dart';
@@ -13,81 +14,52 @@ class ReadingView extends StatefulWidget {
 
 class _ReadingViewState extends State<ReadingView>
     with SingleTickerProviderStateMixin {
+  bool reverse = false;
   bool visible = false;
   late AnimationController controller;
 
   @override
   void initState() {
-    super.initState();
     controller = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 400),
     );
+    super.initState();
   }
 
   @override
   void dispose() {
     controller.dispose();
+    SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
     super.dispose();
-  }
-
-  void nextPage({required Book book}) {
-    if (book.readProgress.page < (book.media.pageCount - 1)) {
-      setState(() {
-        book.readProgress.page += 1;
-      });
-    }
-    updateReadProgress(
-      id: book.id,
-      data: book.readProgress.toJson(),
-    );
-  }
-
-  void previousPage({required Book book}) {
-    if (book.readProgress.page > 0) {
-      setState(() {
-        book.readProgress.page -= 1;
-      });
-    }
-    if (book.readProgress.page == 0) {
-      updateReadProgress(
-        id: book.id,
-        data: book.readProgress.toJson(),
-      );
-    }
-    updateReadProgress(
-      id: book.id,
-      data: book.readProgress.toJson(),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     Book book = ModalRoute.of(context)!.settings.arguments as Book;
 
+    SystemChrome.setEnabledSystemUIOverlays([]);
+
     return Stack(
       children: [
-        SimpleGestureDetector(
-          swipeConfig: SimpleSwipeConfig(
-            verticalThreshold: 40.0,
-            horizontalThreshold: 200.0,
-            swipeDetectionBehavior: SwipeDetectionBehavior.continuous,
-          ),
-          onHorizontalSwipe: (direction) {
-            if (direction == SwipeDirection.left) {
-              nextPage(book: book);
-            } else {
-              previousPage(book: book);
-            }
+        PreloadPageView.builder(
+          reverse: reverse,
+          preloadPagesCount: 4,
+          itemCount: book.media.pageCount,
+          itemBuilder: (BuildContext context, int position) {
+            return BookImage(id: book.id, page: position);
           },
-          child: Container(
-            height: double.infinity,
-            width: double.infinity,
-            child: BookImage(
+          controller:
+              PreloadPageController(initialPage: book.readProgress.page),
+          onPageChanged: (int position) {
+            setState(() {
+              book.readProgress.page = position;
+            });
+            updateReadProgress(
               id: book.id,
-              page: book.readProgress.page,
-            ),
-          ),
+              data: book.readProgress.toJson(),
+            );
+          },
         ),
         SafeArea(
           child: Container(
@@ -95,90 +67,97 @@ class _ReadingViewState extends State<ReadingView>
               children: [
                 Expanded(
                   flex: 1,
-                  child: Container(
-                    child: GestureDetector(
-                      onTap: () {
-                        previousPage(book: book);
-                      },
-                    ),
-                  ),
+                  child: Container(),
                 ),
                 Container(
-                  width: 50,
+                  width: 100,
                   child: GestureDetector(
                     onTap: () => setState(() => visible = !visible),
                   ),
                 ),
                 Expanded(
                   flex: 1,
-                  child: Container(
-                    child: GestureDetector(
-                      onTap: () {
-                        nextPage(book: book);
-                      },
-                    ),
-                  ),
+                  child: Container(),
                 ),
               ],
             ),
           ),
         ),
-        SafeArea(
-          child: Column(
-            children: [
-              Material(
-                color: Colors.transparent,
-                child: SlideUp(
-                  controller: controller,
-                  visible: visible,
-                  child: Container(
-                    child: Row(
-                      children: [
-                        BackButton(
-                          color: Colors.white,
-                        ),
-                        Text(
-                          book.name,
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Material(
-                    color: Colors.transparent,
-                    child: Container(
-                      height: 50,
-                      child: SlideDown(
-                        controller: controller,
-                        visible: visible,
-                        child: Slider(
-                            value: book.readProgress.page.toDouble(),
-                            min: 0,
-                            max: (book.media.pageCount - 1).toDouble(),
-                            divisions: book.media.pageCount,
-                            label:
-                                (book.readProgress.page + 1).round().toString(),
-                            onChanged: (double value) {
-                              setState(() {
-                                book.readProgress.page = value.toInt();
-                              });
-                              updateReadProgress(
-                                id: book.id,
-                                data: book.readProgress.toJson(),
-                              );
-                            }),
+        Column(
+          children: [
+            Material(
+              color: Colors.transparent,
+              child: SlideUp(
+                controller: controller,
+                visible: visible,
+                child: Container(
+                  child: Row(
+                    children: [
+                      BackButton(
+                        color: Colors.white,
                       ),
+                      Text(
+                        book.name,
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Material(
+                  color: Colors.transparent,
+                  child: Container(
+                    height: 80,
+                    child: SlideDown(
+                      controller: controller,
+                      visible: visible,
+                      child: Container(
+                        child: Row(
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  reverse = !reverse;
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Yay! A SnackBar!'),
+                                  ),
+                                );
+                              },
+                              icon: Icon(
+                                reverse ? Icons.arrow_left : Icons.arrow_right,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Slider(
+                      //     value: book.readProgress.page.toDouble(),
+                      //     min: 0,
+                      //     max: (book.media.pageCount - 1).toDouble(),
+                      //     label:
+                      //         (book.readProgress.page + 1).round().toString(),
+                      //     onChanged: (double value) {
+                      //       setState(() {
+                      //         book.readProgress.page = value.toInt();
+                      //       });
+                      //       updateReadProgress(
+                      //         id: book.id,
+                      //         data: book.readProgress.toJson(),
+                      //       );
+                      //     }),
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ],
     );

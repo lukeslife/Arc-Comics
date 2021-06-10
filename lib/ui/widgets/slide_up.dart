@@ -16,7 +16,7 @@ class SlideUp extends StatelessWidget {
   Widget build(BuildContext context) {
     visible ? controller.reverse() : controller.forward();
     return SlideTransition(
-      position: Tween<Offset>(begin: Offset.zero, end: Offset(0, -2)).animate(
+      position: Tween<Offset>(begin: Offset.zero, end: Offset(0, -1)).animate(
         CurvedAnimation(parent: controller, curve: Curves.fastOutSlowIn),
       ),
       child: child,
