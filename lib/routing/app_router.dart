@@ -6,6 +6,8 @@ import '../features/library/library_screen.dart';
 import '../features/reader/reader_screen.dart';
 import '../features/library/series_detail_screen.dart';
 import '../features/settings/settings_screen.dart';
+import '../features/downloads/downloads_screen.dart';
+import '../features/library/search_screen.dart';
 import '../data/storage/credentials_store.dart';
 
 final _credentialsStore = CredentialsStore();
@@ -32,6 +34,8 @@ final appRouter = GoRouter(
     GoRoute(path: '/home', builder: (_, __) => const HomeScreen()),
     GoRoute(path: '/library', builder: (_, __) => const LibraryScreen()),
     GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
+    GoRoute(path: '/downloads', builder: (_, __) => const DownloadsScreen()),
+    GoRoute(path: '/search', builder: (_, __) => const SearchScreen()),
     GoRoute(
       path: '/series/:seriesId',
       builder: (_, state) => SeriesDetailScreen(seriesKomgaId: state.pathParameters['seriesId']!),

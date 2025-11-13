@@ -9,6 +9,7 @@ import 'package:arc_comics/data/api/komga_client.dart';
 import 'package:arc_comics/data/repos/page_repo.dart';
 import 'package:arc_comics/data/repos/book_repo.dart';
 import 'package:arc_comics/data/storage/file_store.dart';
+import 'package:arc_comics/data/storage/progress_sync_queue.dart';
 
 import '../settings/settings_controller.dart';
 import 'package:arc_comics/domain/models/settings.dart';
@@ -48,6 +49,10 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
 
   // tiny in-memory cache of futures to avoid duplicate loads
   final Map<int, Future<ImageProvider>> _pending = {};
+  
+  // Debounce timer for progress sync
+  DateTime? _lastProgressSave;
+  static const _progressDebounceMs = 500; // 500ms debounce
 
   @override
   void initState() {
@@ -149,9 +154,12 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   void _prefetchNext(int current) {
     if (_settings?.prefetchNextPage != true) return;
     final total = _pageCount ?? 0;
-    final next = current + 1;
-    if (next < total && !_pending.containsKey(next)) {
-      _loadPage(next); // fire-and-forget
+    // Prefetch next 2-3 pages ahead for smoother reading
+    for (int offset = 1; offset <= 3; offset++) {
+      final next = current + offset;
+      if (next < total && !_pending.containsKey(next)) {
+        _loadPage(next); // fire-and-forget
+      }
     }
   }
 
@@ -181,13 +189,66 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     final bookRepo = await ref.read(_bookRepoProvider.future);
     await bookRepo.updateReadingProgress(widget.bookKomgaId, pageIndex, total);
     
-    // Sync to Komga server (1-based page number)
+    // Debounce sync to avoid excessive API calls
+    final now = DateTime.now();
+    if (_lastProgressSave != null &&
+        now.difference(_lastProgressSave!).inMilliseconds < _progressDebounceMs) {
+      // Update queue but don't sync yet
+      await ProgressSyncQueue.enqueue(widget.bookKomgaId, pageIndex + 1);
+      return;
+    }
+    _lastProgressSave = now;
+    
+    // Try to sync immediately, queue if it fails
     try {
       final client = await ref.read(_clientProvider.future);
       await client.updateReadingProgress(widget.bookKomgaId, pageIndex + 1);
     } catch (e) {
-      // Silently fail - progress is saved locally
+      // Queue for later sync
+      await ProgressSyncQueue.enqueue(widget.bookKomgaId, pageIndex + 1);
     }
+  }
+
+  void _showPageJumpDialog(BuildContext context) {
+    final total = _pageCount ?? 0;
+    if (total == 0) return;
+    
+    final controller = TextEditingController(text: '${_index + 1}');
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Jump to Page'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            labelText: 'Page (1-$total)',
+            hintText: 'Enter page number',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final pageNum = int.tryParse(controller.text);
+              if (pageNum != null && pageNum >= 1 && pageNum <= total) {
+                final targetIndex = pageNum - 1;
+                _pc?.animateToPage(
+                  targetIndex,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Go'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -202,13 +263,12 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
           // quick fit switcher
           PopupMenuButton<int>(
             onSelected: (v) async {
-  await ref
-      .read(settingsProvider.notifier)
-      .updateSettings((x) => x.fitMode = v);
-  await _loadSettings();
-  setState(() {}); // repaint with new fit
-},
-
+              await ref
+                  .read(settingsProvider.notifier)
+                  .updateSettings((x) => x.fitMode = v);
+              await _loadSettings();
+              setState(() {}); // repaint with new fit
+            },
             itemBuilder: (_) => const [
               PopupMenuItem(value: 0, child: Text('Fit: Contain')),
               PopupMenuItem(value: 1, child: Text('Fit: Width')),
@@ -216,6 +276,17 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
             ],
             icon: const Icon(Icons.aspect_ratio),
           ),
+          // Page jump button
+          if (total != null && total > 0)
+            PopupMenuButton(
+              icon: const Icon(Icons.more_vert),
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  child: const Text('Jump to Page'),
+                  onTap: () => _showPageJumpDialog(context),
+                ),
+              ],
+            ),
           if (total != null && total > 0)
             Center(
               child: Padding(

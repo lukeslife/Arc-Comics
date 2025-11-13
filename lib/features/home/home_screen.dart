@@ -5,6 +5,7 @@ import '../library/library_screen.dart';
 import 'widgets/continue_reading_module.dart';
 import 'widgets/recently_added_module.dart';
 import 'widgets/publisher_shelves_module.dart';
+import 'widgets/library_module.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -15,6 +16,11 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Arc Comics'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () => context.push('/search'),
+            tooltip: 'Search',
+          ),
           IconButton(
             icon: const Icon(Icons.library_books),
             onPressed: () => context.push('/library'),
@@ -34,6 +40,7 @@ class HomeScreen extends ConsumerWidget {
             ContinueReadingModule(),
             RecentlyAddedModule(),
             PublisherShelvesModule(),
+            LibraryModule(),
           ],
         ),
       ),
