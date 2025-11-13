@@ -157,4 +157,12 @@ class KomgaClient {
       options: Options(responseType: ResponseType.bytes),
     );
   }
+
+  /// Get base URL for constructing image URLs
+  String get baseUrl => _dio.options.baseUrl;
+
+  /// Get authentication headers for use with CachedNetworkImage
+  Map<String, String> getAuthHeaders() {
+    return Map<String, String>.from(_dio.options.headers);
+  }
 }

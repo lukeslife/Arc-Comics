@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'settings_controller.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -62,6 +63,14 @@ class SettingsScreen extends ConsumerWidget {
                 onSelectionChanged: (set) => ref.read(settingsProvider.notifier)
                                                   .updateSettings((x) => x.themeMode = set.first),
               ),
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.download),
+              title: const Text('Downloads'),
+              subtitle: const Text('Manage downloaded books and storage'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/downloads'),
             ),
           ],
         ),

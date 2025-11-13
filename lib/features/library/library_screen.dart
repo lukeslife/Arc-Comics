@@ -69,6 +69,11 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         title: const Text('Library'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () => context.push('/search'),
+            tooltip: 'Search',
+          ),
+          IconButton(
             icon: Icon(viewMode ? Icons.grid_view : Icons.list),
             onPressed: () => ref.read(_viewModeProvider.notifier).state = !viewMode,
             tooltip: viewMode ? 'Grid view' : 'List view',
