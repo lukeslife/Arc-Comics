@@ -195,13 +195,6 @@ flutter run \
   --dart-define=KOMGA_USERNAME=email \
   --dart-define=KOMGA_PASSWORD=your-password
 
-
-For quick testing:
-
-Base URL: https://demo.komga.org  
-User: demo@komga.org  
-Pass: komga-demo
-
 🤝 Contributing
 
 This is a personal but public project — ideas, issues, and PRs are welcome.
