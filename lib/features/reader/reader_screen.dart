@@ -7,14 +7,19 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 
 import 'package:arc_comics/data/api/komga_client.dart';
 import 'package:arc_comics/data/repos/page_repo.dart';
+import 'package:arc_comics/data/repos/book_repo.dart';
 import 'package:arc_comics/data/storage/file_store.dart';
 
 import '../settings/settings_controller.dart';
 import 'package:arc_comics/domain/models/settings.dart';
 
-final _client = Provider((_) => KomgaClient());
+final _clientProvider = FutureProvider<KomgaClient>((_) => KomgaClient.create());
 final _fs = Provider((_) => FileStore());
 final _pagesRepo = Provider((_) => PageRepo());
+final _bookRepoProvider = FutureProvider<BookRepo>((ref) async {
+  final client = await ref.watch(_clientProvider.future);
+  return BookRepo(client);
+});
 
 class ReaderScreen extends ConsumerStatefulWidget {
   final String bookKomgaId;
@@ -34,8 +39,9 @@ class ReaderScreen extends ConsumerStatefulWidget {
 
 class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   int? _pageCount;
-  late final PageController _pc;
+  PageController? _pc;
   int _index = 0;
+  int _initialPageIndex = 0;
 
   // user settings (loaded once, kept in memory)
   SettingsEntity? _settings;
@@ -46,15 +52,37 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   @override
   void initState() {
     super.initState();
-    _pc = PageController();
-    _ensurePageCount();
-    _loadSettings();
+    _loadInitialState();
+  }
+
+  Future<void> _loadInitialState() async {
+    await _loadSettings();
+    await _loadReadingProgress();
+    await _ensurePageCount();
+    if (mounted && _pageCount != null) {
+      // Clamp initial page index to valid range to prevent runtime errors
+      final validPageCount = _pageCount!;
+      final clampedIndex = _initialPageIndex.clamp(0, validPageCount > 0 ? validPageCount - 1 : 0);
+      _pc = PageController(initialPage: clampedIndex);
+      _index = clampedIndex;
+      _initialPageIndex = clampedIndex;
+      setState(() {});
+    }
   }
 
   @override
   void dispose() {
-    _pc.dispose();
+    _pc?.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadReadingProgress() async {
+    final bookRepo = await ref.read(_bookRepoProvider.future);
+    final book = await bookRepo.getByKomgaId(widget.bookKomgaId);
+    if (book != null && book.currentPageIndex > 0) {
+      _initialPageIndex = book.currentPageIndex;
+      _index = book.currentPageIndex;
+    }
   }
 
   Future<void> _loadSettings() async {
@@ -67,7 +95,8 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
       setState(() => _pageCount = widget.initialPageCount);
       return;
     }
-    final pages = await ref.read(_client).listPages(widget.bookKomgaId);
+    final clientAsync = await ref.read(_clientProvider.future);
+    final pages = await clientAsync.listPages(widget.bookKomgaId);
     if (mounted) setState(() => _pageCount = pages.length);
   }
 
@@ -90,7 +119,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     final future = () async {
       final store = ref.read(_fs);
       final repo = ref.read(_pagesRepo);
-      final api = ref.read(_client);
+      final api = await ref.read(_clientProvider.future);
 
       // 1) Disk first
       final f = await store.pageFile(widget.bookKomgaId, index);
@@ -127,8 +156,8 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   }
 
   void _goPrev() {
-    if (_index > 0) {
-      _pc.previousPage(
+    if (_index > 0 && _pc != null) {
+      _pc!.previousPage(
         duration: const Duration(milliseconds: 180),
         curve: Curves.easeOut,
       );
@@ -137,11 +166,27 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
 
   void _goNext() {
     final total = _pageCount ?? 0;
-    if (_index + 1 < total) {
-      _pc.nextPage(
+    if (_index + 1 < total && _pc != null) {
+      _pc!.nextPage(
         duration: const Duration(milliseconds: 180),
         curve: Curves.easeOut,
       );
+    }
+  }
+
+  Future<void> _saveReadingProgress(int pageIndex) async {
+    final total = _pageCount ?? 0;
+    if (total == 0) return;
+    
+    final bookRepo = await ref.read(_bookRepoProvider.future);
+    await bookRepo.updateReadingProgress(widget.bookKomgaId, pageIndex, total);
+    
+    // Sync to Komga server (1-based page number)
+    try {
+      final client = await ref.read(_clientProvider.future);
+      await client.updateReadingProgress(widget.bookKomgaId, pageIndex + 1);
+    } catch (e) {
+      // Silently fail - progress is saved locally
     }
   }
 
@@ -205,11 +250,16 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
           );
         }
 
+        if (_pc == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
         return PageView.builder(
           controller: _pc,
           itemCount: total,
           onPageChanged: (i) {
             setState(() => _index = i);
+            _saveReadingProgress(i);
             _prefetchNext(i);
           },
           itemBuilder: (context, index) {

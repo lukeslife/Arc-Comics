@@ -48,6 +48,21 @@ class SettingsScreen extends ConsumerWidget {
               onChanged: (v) => ref.read(settingsProvider.notifier)
                                    .updateSettings((x) => x.tapZones = v),
             ),
+            const Divider(),
+            ListTile(
+              title: const Text('Theme'),
+              subtitle: const Text('Choose light, dark, or system theme'),
+              trailing: SegmentedButton<int>(
+                segments: const [
+                  ButtonSegment(value: 0, label: Text('Light'), icon: Icon(Icons.light_mode)),
+                  ButtonSegment(value: 1, label: Text('Dark'), icon: Icon(Icons.dark_mode)),
+                  ButtonSegment(value: 2, label: Text('System'), icon: Icon(Icons.brightness_auto)),
+                ],
+                selected: {s.themeMode},
+                onSelectionChanged: (set) => ref.read(settingsProvider.notifier)
+                                                  .updateSettings((x) => x.themeMode = set.first),
+              ),
+            ),
           ],
         ),
       ),

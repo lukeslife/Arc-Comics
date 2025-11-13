@@ -17,53 +17,63 @@ const BookEntitySchema = CollectionSchema(
   name: r'BookEntity',
   id: 8847647309143832400,
   properties: {
-    r'isDownloaded': PropertySchema(
+    r'currentPageIndex': PropertySchema(
       id: 0,
+      name: r'currentPageIndex',
+      type: IsarType.long,
+    ),
+    r'isDownloaded': PropertySchema(
+      id: 1,
       name: r'isDownloaded',
       type: IsarType.bool,
     ),
     r'isPinned': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'isPinned',
       type: IsarType.bool,
     ),
     r'komgaId': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'komgaId',
       type: IsarType.string,
     ),
     r'lastOpenedAt': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'lastOpenedAt',
       type: IsarType.dateTime,
     ),
     r'mediaType': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'mediaType',
       type: IsarType.string,
     ),
     r'number': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'number',
       type: IsarType.long,
     ),
     r'pageCount': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'pageCount',
       type: IsarType.long,
     ),
+    r'readPageCount': PropertySchema(
+      id: 8,
+      name: r'readPageCount',
+      type: IsarType.long,
+    ),
     r'seriesKomgaId': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'seriesKomgaId',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -106,16 +116,18 @@ void _bookEntitySerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeBool(offsets[0], object.isDownloaded);
-  writer.writeBool(offsets[1], object.isPinned);
-  writer.writeString(offsets[2], object.komgaId);
-  writer.writeDateTime(offsets[3], object.lastOpenedAt);
-  writer.writeString(offsets[4], object.mediaType);
-  writer.writeLong(offsets[5], object.number);
-  writer.writeLong(offsets[6], object.pageCount);
-  writer.writeString(offsets[7], object.seriesKomgaId);
-  writer.writeString(offsets[8], object.title);
-  writer.writeDateTime(offsets[9], object.updatedAt);
+  writer.writeLong(offsets[0], object.currentPageIndex);
+  writer.writeBool(offsets[1], object.isDownloaded);
+  writer.writeBool(offsets[2], object.isPinned);
+  writer.writeString(offsets[3], object.komgaId);
+  writer.writeDateTime(offsets[4], object.lastOpenedAt);
+  writer.writeString(offsets[5], object.mediaType);
+  writer.writeLong(offsets[6], object.number);
+  writer.writeLong(offsets[7], object.pageCount);
+  writer.writeLong(offsets[8], object.readPageCount);
+  writer.writeString(offsets[9], object.seriesKomgaId);
+  writer.writeString(offsets[10], object.title);
+  writer.writeDateTime(offsets[11], object.updatedAt);
 }
 
 BookEntity _bookEntityDeserialize(
@@ -125,17 +137,19 @@ BookEntity _bookEntityDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = BookEntity(
+    currentPageIndex: reader.readLongOrNull(offsets[0]) ?? 0,
     id: id,
-    isDownloaded: reader.readBoolOrNull(offsets[0]) ?? false,
-    isPinned: reader.readBoolOrNull(offsets[1]) ?? false,
-    komgaId: reader.readString(offsets[2]),
-    lastOpenedAt: reader.readDateTimeOrNull(offsets[3]),
-    mediaType: reader.readStringOrNull(offsets[4]),
-    number: reader.readLong(offsets[5]),
-    pageCount: reader.readLong(offsets[6]),
-    seriesKomgaId: reader.readString(offsets[7]),
-    title: reader.readString(offsets[8]),
-    updatedAt: reader.readDateTime(offsets[9]),
+    isDownloaded: reader.readBoolOrNull(offsets[1]) ?? false,
+    isPinned: reader.readBoolOrNull(offsets[2]) ?? false,
+    komgaId: reader.readString(offsets[3]),
+    lastOpenedAt: reader.readDateTimeOrNull(offsets[4]),
+    mediaType: reader.readStringOrNull(offsets[5]),
+    number: reader.readLong(offsets[6]),
+    pageCount: reader.readLong(offsets[7]),
+    readPageCount: reader.readLongOrNull(offsets[8]) ?? 0,
+    seriesKomgaId: reader.readString(offsets[9]),
+    title: reader.readString(offsets[10]),
+    updatedAt: reader.readDateTime(offsets[11]),
   );
   return object;
 }
@@ -148,24 +162,28 @@ P _bookEntityDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readBoolOrNull(offset) ?? false) as P;
+      return (reader.readLongOrNull(offset) ?? 0) as P;
     case 1:
       return (reader.readBoolOrNull(offset) ?? false) as P;
     case 2:
-      return (reader.readString(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 3:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 4:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 5:
-      return (reader.readLong(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 6:
       return (reader.readLong(offset)) as P;
     case 7:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 8:
-      return (reader.readString(offset)) as P;
+      return (reader.readLongOrNull(offset) ?? 0) as P;
     case 9:
+      return (reader.readString(offset)) as P;
+    case 10:
+      return (reader.readString(offset)) as P;
+    case 11:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -263,6 +281,62 @@ extension BookEntityQueryWhere
 
 extension BookEntityQueryFilter
     on QueryBuilder<BookEntity, BookEntity, QFilterCondition> {
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
+      currentPageIndexEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'currentPageIndex',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
+      currentPageIndexGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'currentPageIndex',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
+      currentPageIndexLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'currentPageIndex',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
+      currentPageIndexBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'currentPageIndex',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition> idEqualTo(
       Id value) {
     return QueryBuilder.apply(this, (query) {
@@ -802,6 +876,62 @@ extension BookEntityQueryFilter
   }
 
   QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
+      readPageCountEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'readPageCount',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
+      readPageCountGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'readPageCount',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
+      readPageCountLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'readPageCount',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
+      readPageCountBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'readPageCount',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterFilterCondition>
       seriesKomgaIdEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1131,6 +1261,19 @@ extension BookEntityQueryLinks
 
 extension BookEntityQuerySortBy
     on QueryBuilder<BookEntity, BookEntity, QSortBy> {
+  QueryBuilder<BookEntity, BookEntity, QAfterSortBy> sortByCurrentPageIndex() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentPageIndex', Sort.asc);
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterSortBy>
+      sortByCurrentPageIndexDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentPageIndex', Sort.desc);
+    });
+  }
+
   QueryBuilder<BookEntity, BookEntity, QAfterSortBy> sortByIsDownloaded() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isDownloaded', Sort.asc);
@@ -1215,6 +1358,18 @@ extension BookEntityQuerySortBy
     });
   }
 
+  QueryBuilder<BookEntity, BookEntity, QAfterSortBy> sortByReadPageCount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'readPageCount', Sort.asc);
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterSortBy> sortByReadPageCountDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'readPageCount', Sort.desc);
+    });
+  }
+
   QueryBuilder<BookEntity, BookEntity, QAfterSortBy> sortBySeriesKomgaId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'seriesKomgaId', Sort.asc);
@@ -1254,6 +1409,19 @@ extension BookEntityQuerySortBy
 
 extension BookEntityQuerySortThenBy
     on QueryBuilder<BookEntity, BookEntity, QSortThenBy> {
+  QueryBuilder<BookEntity, BookEntity, QAfterSortBy> thenByCurrentPageIndex() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentPageIndex', Sort.asc);
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterSortBy>
+      thenByCurrentPageIndexDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentPageIndex', Sort.desc);
+    });
+  }
+
   QueryBuilder<BookEntity, BookEntity, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -1350,6 +1518,18 @@ extension BookEntityQuerySortThenBy
     });
   }
 
+  QueryBuilder<BookEntity, BookEntity, QAfterSortBy> thenByReadPageCount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'readPageCount', Sort.asc);
+    });
+  }
+
+  QueryBuilder<BookEntity, BookEntity, QAfterSortBy> thenByReadPageCountDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'readPageCount', Sort.desc);
+    });
+  }
+
   QueryBuilder<BookEntity, BookEntity, QAfterSortBy> thenBySeriesKomgaId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'seriesKomgaId', Sort.asc);
@@ -1389,6 +1569,12 @@ extension BookEntityQuerySortThenBy
 
 extension BookEntityQueryWhereDistinct
     on QueryBuilder<BookEntity, BookEntity, QDistinct> {
+  QueryBuilder<BookEntity, BookEntity, QDistinct> distinctByCurrentPageIndex() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'currentPageIndex');
+    });
+  }
+
   QueryBuilder<BookEntity, BookEntity, QDistinct> distinctByIsDownloaded() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isDownloaded');
@@ -1433,6 +1619,12 @@ extension BookEntityQueryWhereDistinct
     });
   }
 
+  QueryBuilder<BookEntity, BookEntity, QDistinct> distinctByReadPageCount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'readPageCount');
+    });
+  }
+
   QueryBuilder<BookEntity, BookEntity, QDistinct> distinctBySeriesKomgaId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1460,6 +1652,12 @@ extension BookEntityQueryProperty
   QueryBuilder<BookEntity, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<BookEntity, int, QQueryOperations> currentPageIndexProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'currentPageIndex');
     });
   }
 
@@ -1502,6 +1700,12 @@ extension BookEntityQueryProperty
   QueryBuilder<BookEntity, int, QQueryOperations> pageCountProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'pageCount');
+    });
+  }
+
+  QueryBuilder<BookEntity, int, QQueryOperations> readPageCountProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'readPageCount');
     });
   }
 

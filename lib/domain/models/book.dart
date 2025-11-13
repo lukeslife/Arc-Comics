@@ -16,6 +16,10 @@ class BookEntity {
   bool isPinned;               // never evict if true
   bool isDownloaded;           // all pages present
   DateTime? lastOpenedAt;
+  
+  // reading progress
+  int currentPageIndex;        // 0-based index of current page
+  int readPageCount;           // number of pages read (for progress calculation)
 
   BookEntity({
     this.id = Isar.autoIncrement,
@@ -29,5 +33,7 @@ class BookEntity {
     this.isPinned = false,
     this.isDownloaded = false,
     this.lastOpenedAt,
+    this.currentPageIndex = 0,
+    this.readPageCount = 0,
   });
 }

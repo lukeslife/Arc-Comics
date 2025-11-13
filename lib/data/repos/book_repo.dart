@@ -68,7 +68,15 @@ class BookRepo {
     await db.writeTxn(() async {
       for (final b in entities) {
         final existing = await db.bookEntitys.filter().komgaIdEqualTo(b.komgaId).findFirst();
-        if (existing != null) b.id = existing.id;
+        if (existing != null) {
+          // Preserve reading progress and download state
+          b.id = existing.id;
+          b.currentPageIndex = existing.currentPageIndex;
+          b.readPageCount = existing.readPageCount;
+          b.isDownloaded = existing.isDownloaded;
+          b.isPinned = existing.isPinned;
+          b.lastOpenedAt = existing.lastOpenedAt;
+        }
         await db.bookEntitys.put(b);
       }
     });
@@ -100,5 +108,29 @@ class BookRepo {
         await db.bookEntitys.put(existing);
       });
     }
+  }
+
+  Future<void> updateReadingProgress(String bookKomgaId, int pageIndex, int totalPages) async {
+    final db = await AppDb.open();
+    final existing =
+        await db.bookEntitys.filter().komgaIdEqualTo(bookKomgaId).findFirst();
+    if (existing != null) {
+      await db.writeTxn(() async {
+        existing.currentPageIndex = pageIndex.clamp(0, totalPages - 1);
+        existing.readPageCount = (pageIndex + 1).clamp(0, totalPages);
+        existing.lastOpenedAt = DateTime.now();
+        await db.bookEntitys.put(existing);
+      });
+    }
+  }
+
+  Future<BookEntity?> getByKomgaId(String bookKomgaId) async {
+    final db = await AppDb.open();
+    return await db.bookEntitys.filter().komgaIdEqualTo(bookKomgaId).findFirst();
+  }
+
+  Future<List<BookEntity>> getAllLocal() async {
+    final db = await AppDb.open();
+    return db.bookEntitys.where().findAll();
   }
 }

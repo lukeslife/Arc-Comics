@@ -5,8 +5,15 @@ import '../../data/api/komga_client.dart';
 import '../../data/repos/book_repo.dart';
 import '../../domain/models/book.dart';
 
-final _client = Provider((_) => KomgaClient());
-final _booksRepo = Provider((ref) => BookRepo(ref.watch(_client)));
+final _clientProvider = FutureProvider<KomgaClient>((_) => KomgaClient.create());
+final _booksRepo = Provider((ref) {
+  final clientAsync = ref.watch(_clientProvider);
+  return clientAsync.when(
+    data: (client) => BookRepo(client),
+    loading: () => throw Exception('Client not ready'),
+    error: (_, __) => throw Exception('Client error'),
+  );
+});
 
 class SeriesBooksScreen extends ConsumerWidget {
   final String seriesKomgaId;
@@ -14,7 +21,8 @@ class SeriesBooksScreen extends ConsumerWidget {
 
   Future<int> _resolvePageCount(WidgetRef ref, String bookId, int hinted) async {
     if (hinted > 0) return hinted;
-    final pages = await ref.read(_client).listPages(bookId);
+    final client = await ref.read(_clientProvider.future);
+    final pages = await client.listPages(bookId);
     return pages.length;
   }
 

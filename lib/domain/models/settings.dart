@@ -18,10 +18,14 @@ class SettingsEntity {
   /// Tap left/right edge to turn pages.
   bool tapZones;
 
+  /// Theme mode: 0 = light, 1 = dark, 2 = system
+  int themeMode;
+
   SettingsEntity({
     this.wifiOnlyStreaming = true,
     this.prefetchNextPage = true,
     this.fitMode = 1, // default: fit-width feels best for comics
     this.tapZones = true,
+    this.themeMode = 2, // default: system
   });
 }

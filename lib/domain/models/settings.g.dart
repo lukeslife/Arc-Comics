@@ -32,8 +32,13 @@ const SettingsEntitySchema = CollectionSchema(
       name: r'tapZones',
       type: IsarType.bool,
     ),
-    r'wifiOnlyStreaming': PropertySchema(
+    r'themeMode': PropertySchema(
       id: 3,
+      name: r'themeMode',
+      type: IsarType.long,
+    ),
+    r'wifiOnlyStreaming': PropertySchema(
+      id: 4,
       name: r'wifiOnlyStreaming',
       type: IsarType.bool,
     )
@@ -70,7 +75,8 @@ void _settingsEntitySerialize(
   writer.writeLong(offsets[0], object.fitMode);
   writer.writeBool(offsets[1], object.prefetchNextPage);
   writer.writeBool(offsets[2], object.tapZones);
-  writer.writeBool(offsets[3], object.wifiOnlyStreaming);
+  writer.writeLong(offsets[3], object.themeMode);
+  writer.writeBool(offsets[4], object.wifiOnlyStreaming);
 }
 
 SettingsEntity _settingsEntityDeserialize(
@@ -83,7 +89,8 @@ SettingsEntity _settingsEntityDeserialize(
     fitMode: reader.readLongOrNull(offsets[0]) ?? 1,
     prefetchNextPage: reader.readBoolOrNull(offsets[1]) ?? true,
     tapZones: reader.readBoolOrNull(offsets[2]) ?? true,
-    wifiOnlyStreaming: reader.readBoolOrNull(offsets[3]) ?? true,
+    themeMode: reader.readLongOrNull(offsets[3]) ?? 2,
+    wifiOnlyStreaming: reader.readBoolOrNull(offsets[4]) ?? true,
   );
   object.id = id;
   return object;
@@ -103,6 +110,8 @@ P _settingsEntityDeserializeProp<P>(
     case 2:
       return (reader.readBoolOrNull(offset) ?? true) as P;
     case 3:
+      return (reader.readLongOrNull(offset) ?? 2) as P;
+    case 4:
       return (reader.readBoolOrNull(offset) ?? true) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -337,6 +346,62 @@ extension SettingsEntityQueryFilter
   }
 
   QueryBuilder<SettingsEntity, SettingsEntity, QAfterFilterCondition>
+      themeModeEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'themeMode',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterFilterCondition>
+      themeModeGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'themeMode',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterFilterCondition>
+      themeModeLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'themeMode',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterFilterCondition>
+      themeModeBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'themeMode',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterFilterCondition>
       wifiOnlyStreamingEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -392,6 +457,19 @@ extension SettingsEntityQuerySortBy
       sortByTapZonesDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'tapZones', Sort.desc);
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy> sortByThemeMode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'themeMode', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy>
+      sortByThemeModeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'themeMode', Sort.desc);
     });
   }
 
@@ -464,6 +542,19 @@ extension SettingsEntityQuerySortThenBy
     });
   }
 
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy> thenByThemeMode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'themeMode', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy>
+      thenByThemeModeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'themeMode', Sort.desc);
+    });
+  }
+
   QueryBuilder<SettingsEntity, SettingsEntity, QAfterSortBy>
       thenByWifiOnlyStreaming() {
     return QueryBuilder.apply(this, (query) {
@@ -501,6 +592,13 @@ extension SettingsEntityQueryWhereDistinct
   }
 
   QueryBuilder<SettingsEntity, SettingsEntity, QDistinct>
+      distinctByThemeMode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'themeMode');
+    });
+  }
+
+  QueryBuilder<SettingsEntity, SettingsEntity, QDistinct>
       distinctByWifiOnlyStreaming() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'wifiOnlyStreaming');
@@ -532,6 +630,12 @@ extension SettingsEntityQueryProperty
   QueryBuilder<SettingsEntity, bool, QQueryOperations> tapZonesProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'tapZones');
+    });
+  }
+
+  QueryBuilder<SettingsEntity, int, QQueryOperations> themeModeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'themeMode');
     });
   }
 

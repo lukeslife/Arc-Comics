@@ -10,6 +10,12 @@ class SeriesEntity {
   final int booksCount;
   final DateTime updatedAt;
   DateTime? lastOpenedAt;
+  
+  // Rich metadata
+  final String? publisher;
+  final String? description;
+  final String? ageRating;
+  final DateTime? releaseDate;
 
   SeriesEntity({
     this.id = Isar.autoIncrement,
@@ -19,5 +25,9 @@ class SeriesEntity {
     required this.booksCount,
     required this.updatedAt,
     this.lastOpenedAt,
+    this.publisher,
+    this.description,
+    this.ageRating,
+    this.releaseDate,
   });
 }
