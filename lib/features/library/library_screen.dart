@@ -37,7 +37,15 @@ class LibraryScreen extends ConsumerWidget {
     final dl = ref.watch(_dlProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Library')),
+      appBar: AppBar(
+  title: const Text('Library'),
+  actions: [
+    IconButton(
+      icon: const Icon(Icons.settings),
+      onPressed: () => context.push('/settings'),
+    ),
+  ],
+),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),

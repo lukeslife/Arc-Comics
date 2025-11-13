@@ -54,8 +54,10 @@ class SeriesBooksScreen extends ConsumerWidget {
       subtitle: Text(subtitle),
       enabled: isImageComic && count > 0,
       onTap: (!isImageComic || count == 0)
-          ? null
-          : () => context.push('/reader/${b.komgaId}?count=$count'),
+    ? null
+    : () => context.push(
+          '/reader/${b.komgaId}?count=$count&title=${Uri.encodeComponent(b.title)}',
+      ),
     );
   },
 );
